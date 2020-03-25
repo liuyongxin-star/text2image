@@ -54,7 +54,7 @@ const get_map_img_path = (key_word, data_index, dir_path) => {
 };
 
 const format_data = (key_word, data, img_dir_path,loading) => {
-    console.log(data, "数据",element)
+    console.log(data, "数据-----------")
     if(!data){
         loading.close();
         element.MessageBox({
@@ -64,62 +64,85 @@ const format_data = (key_word, data, img_dir_path,loading) => {
     }
     
     let res_data = {
-        'introduce': [],
-        params: []
-    };
-    res_data.title = data[1]
-    res_data.name = data[2]
-    res_data.attribute1 = data[3]
-    if(data[4].search("，") != '-1'){
-        console.log("又发")
-        res_data.attribute2 = data[4].split("，")
-    }else{
-        res_data.attribute2 = data[4].trim().split(/\s+/)
+        index: data['undefined0']
+     }
+     if(data['参数规格']){
+         let str = data['参数规格'].replace(/"/g,"”")
+         str = str.replace(/'/g,'"')
+        res_data.canshu = JSON.parse(str) 
+
+     }
+     if(data['产品描述']){
+        let str = eval(data['产品描述'])
+        str.forEach(item=>{
+            item.indexOf()
+            if(item.indexOf("◆") != -1){
+                str = item
+            }
+        })
+        if(typeof str == 'string'){
+            str= str.replace(/◆/g,"<br/>◆");
+        }else{
+            str = ""
+        }
+        res_data.describe = str
     }
-    res_data.brand = data[5]
-    res_data.fn = data[9]
-    res_data.number = data[8]
-    res_data.scope = data[10]
-    res_data['index'] = data['序号'];
-    res_data['material'] = data['材质'];
-    res_data['describe'] = data['详细描述'];
-    let c = 1;
-    let condition = true;
-    for (let key in data) {
-        // if(key.search("！")){ //需要放进表格里
-        //     res_data.params.push({
-        //         key: data[key]
-        //     })
-        // }
-        // if (key.search("！") != '-1') {
-        //     let name = key.substr(0, key.length - 1)
-        //     res_data.params.push({
-        //         name: name,
-        //         value: data[key]
-        //     })
-        // }
-        console.log(key.search("！"), "key.search()")
-        if (key >= 13) { //大于13都是产品介绍
-            console.log(key, "key")
-            res_data.introduce.push(data[key])
+     if(data['描述']){
+        let str =  data['描述'].replace(/\n+/g,"<br/>");
+        res_data.describe = str
+    }
+    if(data['产品特征']){
+        res_data.describe = eval(data['产品特征'])
+        // res_data.describe = res_data.describe.substring(1, res_data.describe.length - 1).replace(/'/g,"").split(",")
+    }
+    if(data['安装与使用']){
+        res_data.content = eval(data['安装与使用'])
+    }
+    if(data['订购码']){
+        res_data.code = data['订购码']
+    }
+    if(data['产品规格']){
+        res_data.img = data['产品规格']
+    }
+    if(data['参数图片'] && data['参数图片'] != 'none'){
+        res_data.img = data['参数图片']
+    }
+    if(data['表格项']){
+        let longest = {
+            index: 0,
+            length: 0
+        }
+        let col = []
+        let sku = []
+        res_data.table = eval(data['表格项'])
+        res_data.table.forEach((item,index)=>{
+            if(Object.keys(item).length > longest.length){
+                longest.index = index
+                longest.length = Object.keys(item).length
+            }
+        })
+       
+        let item = res_data.table[0]
+        res_data.table[0] = res_data.table[longest.index]
+        res_data.table[longest.index] = item
+        res_data.table.forEach((item)=>{
+            let arr = []
+            for(let key in res_data.table[0]){
+                let data = item[key] || ""
+                arr.push(data)
+            }
+            sku.push(arr)
+        })
+        for(let key in res_data.table[0]){
+            col.push(key)
+        }
+        console.log(col,sku,"longest")
+        res_data.table = {
+            col: col,
+            sku: sku
         }
     }
-    while (condition) {
-        let intro_key_name = `介绍${c}`;
-        if (data[intro_key_name] === undefined) {
-            break;
-        }
-        res_data.introduce.push(data[intro_key_name]);
-        c += 1
-    }
-    console.log('img_dir_path', img_dir_path);
-    console.log('key_word', key_word, res_data['index'], img_dir_path);
-    let img_path = get_map_img_path(key_word, res_data['index'], img_dir_path);
-    console.log('img_path', img_path);
-    let imgData = get_img_path_data(img_path)
-    res_data['img'] = imgData.imgList;
-    res_data['scene_img'] = imgData.scene_img
-    console.log(res_data, "数据res_data")
+    console.log(res_data,"---------------")
     return res_data
 
 };
